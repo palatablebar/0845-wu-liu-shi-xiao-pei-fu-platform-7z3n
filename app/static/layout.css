@@ -5,7 +5,13 @@
 .p0845 #stage-nav button::before{content:"";position:absolute;right:-25px;top:50%;width:7px;height:7px;border-radius:50%;background:var(--line)}
 .p0845 #stage-nav button[aria-pressed="true"]::before{background:var(--accent);box-shadow:0 0 0 4px var(--soft)}
 .p0845 .board{grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr)}
-.p0845 #panel-table{grid-column:1/-1}.p0845 #panel-review{grid-column:1/-1}
+.p0845 #panel-table{grid-column:1/-1}.p0845 #panel-review,.p0845 #panel-receipts{grid-column:1/-1}
+.p0845 .receipt-box{display:grid;gap:10px}.p0845 .receipt-query{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.p0845 .receipt-query input{min-width:220px;flex:1 1 220px;padding:8px 10px}
+.p0845 #receipt-json{width:100%;min-height:74px;resize:vertical;padding:10px}
+.p0845 button.secondary{background:transparent}.p0845 .balance-wrap{max-height:320px;overflow:auto}
+.p0845 #receipt-holds:empty{display:none}
+.p0845 .hold-row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px dotted var(--line)}
 .p0845 .metric{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;padding-left:0}
 .p0845 .metric strong{color:var(--accent)}
 .p0845 .panel{border:0;border-left:1px solid var(--line);border-radius:0;background:transparent;padding-left:18px}

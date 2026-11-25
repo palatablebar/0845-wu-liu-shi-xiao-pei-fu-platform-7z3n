@@ -119,6 +119,61 @@
       if (state.approved) $('download').href = '/api/runs/' + run.run_id + '/evidence';
     } catch (error) { setNotice(error.message); }
   }
+  function renderBalances(payload, waybillId) {
+    var rows = payload.waybills || [];
+    if (waybillId) rows = rows.filter(function (row) { return row.waybill_id === waybillId; });
+    $('balance-body').innerHTML = rows.length ? rows.map(function (row) {
+      var amount = row.remaining_cents !== undefined ? row.remaining_cents : row.balance;
+      return '<tr><td>' + esc(row.waybill_id) + '</td><td class="num">' +
+        esc(row.opening_cents !== undefined ? row.opening_cents : row.principal_cents) +
+        '</td><td class="num">' + esc(row.paid_cents !== undefined ? row.paid_cents : row.allocated_cents || 0) +
+        '</td><td class="num"><strong>' + esc(amount) + '</strong></td><td>' +
+        (row.settled ? '已结清' : (row.status === 'PARTIAL' ? '部分还款' : '未结清')) + '</td></tr>';
+    }).join('') : '<tr><td class="empty" colspan="5">没有符合条件的运单</td></tr>';
+
+    var holds = payload.holds || payload.held || [];
+    $('receipt-holds').innerHTML = holds.length ? holds.map(function (item) {
+      return '<div class="hold-row"><span>' + esc(item.receipt_id) + ' · ' +
+        esc(item.code || item.status) + '</span><strong>' + esc(item.amount_cents) + '</strong></div>';
+    }).join('') : '';
+  }
+  async function loadBalances() {
+    var waybillId = ($('balance-waybill').value || '').trim();
+    try {
+      var url = waybillId ? '/api/waybills/' + encodeURIComponent(waybillId) + '/balance' : '/api/waybills/balances';
+      var payload = await request(url);
+      if (waybillId && payload.waybill_id) {
+        renderBalances({waybills: [payload], holds: []}, waybillId);
+      } else {
+        renderBalances(payload);
+      }
+      $('receipt-message').textContent = waybillId ? '已查询 ' + waybillId : '已刷新全部欠款';
+    } catch (error) {
+      $('receipt-message').textContent = error.message;
+      $('balance-body').innerHTML = '<tr><td class="empty" colspan="5">查询失败：' + esc(error.message) + '</td></tr>';
+    }
+  }
+  async function applyReceipt() {
+    var text = $('receipt-json').value.trim();
+    if (!text) { $('receipt-message').textContent = '请先填写回单 JSON'; return; }
+    var body;
+    try { body = JSON.parse(text); }
+    catch (error) { $('receipt-message').textContent = 'JSON 格式不正确'; return; }
+    try {
+      $('receipt-apply').disabled = true;
+      var payload = await request('/api/receipts', {method: 'POST', body: JSON.stringify(body)});
+      var single = payload.receipt || payload.result || {};
+      $('receipt-message').textContent = '回单 ' + (single.receipt_id || '') + '：' +
+        (single.status || payload.status || '已处理') +
+        (single.code ? ' / ' + single.code : '');
+      renderBalances(payload);
+      await loadBalances();
+    } catch (error) {
+      $('receipt-message').textContent = error.message;
+    } finally {
+      $('receipt-apply').disabled = false;
+    }
+  }
   async function boot() {
     try {
       var catalog = await request('/api/catalog');
@@ -128,10 +183,16 @@
       stageButtons(catalog.stages.slice(0, 5));
       document.querySelector('.rail-note').textContent = catalog.code + ' · ' + catalog.stages[6].name;
       await loadStage('intake');
+      loadBalances();
     } catch (error) { setNotice(error.message); }
     $('run').addEventListener('click', runBatch);
-    $('sign').addEventListener('click', function () { review('APPROVED'); });
+    $('sign').addEventListener('click', function () { review('APPROVED').then(loadBalances); });
     $('hold').addEventListener('click', function () { review('HELD'); });
+    $('balance-query').addEventListener('click', loadBalances);
+    $('balance-refresh').addEventListener('click', function () { $('balance-waybill').value = ''; loadBalances(); });
+    $('receipt-apply').addEventListener('click', applyReceipt);
+    $('receipt-clear').addEventListener('click', function () { $('receipt-json').value = ''; $('receipt-message').textContent = ''; });
+    $('balance-waybill').addEventListener('keydown', function (event) { if (event.key === 'Enter') loadBalances(); });
     $('profile').addEventListener('change', function () {
       state.run = null; state.approved = false;
       $('sign').disabled = true; $('hold').disabled = true; $('download').hidden = true;

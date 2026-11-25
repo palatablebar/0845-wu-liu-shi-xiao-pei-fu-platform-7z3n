@@ -15,6 +15,7 @@
 | M5 运行对账 | 核对来源行、采信、隔离、重复与计算条目 | `POST /api/stages/reconcile` | `app/reconcile/ledger.py` | `tests/test_reconcile.py` |
 | M6 批次复核 | 带版本号签发或暂缓，拒绝陈旧复核 | `POST /api/runs/{id}/review` | `app/review/service.py` | `tests/test_review.py` |
 | M7 证据交付 | 仅在签发后输出可校验的复核证据 | `GET /api/runs/{id}/evidence` | `app/evidence/render.py` | `tests/test_evidence.py` |
+| M8 回单对账 | 明确回单优先、合款唯一归属才销账、幂等重试与精准冲销 | `POST /api/receipts` | `app/reconcile/receipts.py`、`app/reconcile/store.py` | `tests/test_receipt_feature.py` |
 
 ## 输入陷阱
 

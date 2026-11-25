@@ -27,6 +27,34 @@
       <div class="panel-head"><h2>运行对账</h2></div>
       <div class="ledger" id="ledger-list"></div>
     </article>
+    <article class="panel" id="panel-receipts">
+      <div class="panel-head">
+        <h2>承运商回单对账</h2>
+        <span class="hint">查每张运单还欠多少；合款归属不唯一时自动挂账</span>
+      </div>
+      <div class="receipt-box">
+        <div class="receipt-query">
+          <label for="balance-waybill">运单号</label>
+          <input id="balance-waybill" type="text" placeholder="例如 W2；留空查全部">
+          <button id="balance-query" type="button">查询欠款</button>
+          <button id="balance-refresh" type="button" class="secondary">刷新</button>
+        </div>
+        <label for="receipt-json">回单 JSON（可指明运单，也可只给合款总额）</label>
+        <textarea id="receipt-json" placeholder='{"receipt_id":"R-20261130-01","waybill_id":"W2","amount_cents":500}'></textarea>
+        <div class="review-actions">
+          <button id="receipt-apply" type="button">提交回单并对账</button>
+          <button id="receipt-clear" type="button" class="secondary">清空输入</button>
+          <span id="receipt-message" class="hint" role="status"></span>
+        </div>
+        <div class="table-wrap balance-wrap">
+          <table>
+            <thead><tr><th>运单</th><th>应赔/欠款</th><th>已销</th><th>还欠</th><th>状态</th></tr></thead>
+            <tbody id="balance-body"><tr><td class="empty" colspan="5">签发批次后显示赔款余额</td></tr></tbody>
+          </table>
+        </div>
+        <div class="ledger" id="receipt-holds" aria-live="polite"></div>
+      </div>
+    </article>
     <article class="panel" id="panel-review">
       <div class="panel-head"><h2>批次复核</h2><span class="hint" id="revision">rev 0</span></div>
       <div class="review">

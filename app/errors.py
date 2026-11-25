@@ -18,6 +18,16 @@ MESSAGES = {
     "GATE_BLOCKED": "存在阻断项，不能签发",
     "NOT_APPROVED": "批次尚未签发",
     "BAD_REQUEST": "请求内容不完整",
+    "RECEIPT_REQUIRED": "缺少回单内容",
+    "RECEIPT_NOT_FOUND": "回单不存在",
+    "RECEIPT_CONFLICT": "同一回单号提交了不一致的内容",
+    "RECEIPT_ID_REQUIRED": "缺少原回单号",
+    "REVERSAL_TARGET_MISSING": "冲销回单缺少原回单号",
+    "WAYBILL_NOT_FOUND": "运单不存在",
+    "WAYBILL_ID_MISSING": "运单号为空",
+    "DEBT_AMOUNT_MISSING": "运单欠款缺少金额",
+    "RECEIPT_AMOUNT_MISSING": "回单缺少金额",
+    "BAD_AMOUNT": "金额无法识别",
 }
 
 

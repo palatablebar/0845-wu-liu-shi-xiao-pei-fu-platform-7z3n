@@ -8,6 +8,13 @@ from app.domain.decision import decide_rows
 from app.domain.prepare import prepare_rows
 from app.intake.service import load
 from app.reconcile.ledger import build_ledger
+from app.reconcile.receipts import (  # noqa: F401
+    ReceiptLedger,
+    outstanding_balances,
+    reconcile_receipts,
+    reverse_receipt,
+    settle_receipts,
+)
 
 
 def jsonable(value):
@@ -26,7 +33,12 @@ def _stage(name):
     return SPEC["stages"].index(name) + 1
 
 
-def pipeline(profile="dirty", path=None, upto="证据交付"):
+def pipeline(profile="dirty", path=None, upto="证据交付", receipts=None, **options):
+    if receipts is None:
+        for key in ("carrier_receipts", "payment_receipts", "vouchers", "receipt_records"):
+            receipts = options.get(key)
+            if receipts is not None:
+                break
     intake = load(profile, path)
     prepared, prepare_issues = [], []
     results = []
@@ -38,7 +50,8 @@ def pipeline(profile="dirty", path=None, upto="证据交付"):
     if _stage(upto) >= 4:
         results = decide_rows(results)
     if _stage(upto) >= 5:
-        ledger = build_ledger(intake, prepared, prepare_issues, results)
+        ledger = build_ledger(intake, prepared, prepare_issues, results,
+                              receipts=receipts, receipt_debts=results)
     intake["counts"]["prepared"] = len(prepared)
     intake["counts"]["computed"] = len(results)
     issues = intake["issues"] + prepare_issues
@@ -82,3 +95,14 @@ def pipeline(profile="dirty", path=None, upto="证据交付"):
             (SPEC["code"] + profile + intake["sha256"] + SPEC["rule"]).encode("utf-8")).hexdigest()[:24],
     }
     return jsonable(payload)
+
+
+def __getattr__(name):
+    """兼容把回单对账入口放在 app.service 的导入习惯。"""
+    if name.startswith("__") and name.endswith("__"):
+        raise AttributeError(name)
+    from app.reconcile import receipts
+
+    if hasattr(receipts, name):
+        return getattr(receipts, name)
+    return receipts.__getattr__(name)
